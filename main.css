@@ -1,0 +1,368 @@
+/* css/main.css — Visual design for Antares Solar System Simulator
+   Design intent: deep-space observatory terminal aesthetic.
+   Palette: near-black void, cool slate accents, hot amber/red for Antares events.
+   Typography: Space Grotesk (display) + Inter (body) — deliberate astronomical feel.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500&display=swap');
+
+/* ── Reset & root ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --void:    #060810;
+  --space:   #0c1020;
+  --panel:   rgba(8, 14, 30, 0.88);
+  --border:  rgba(100, 140, 220, 0.22);
+  --accent:  #4a9eff;
+  --antares: #ff5533;
+  --gold:    #ffc055;
+  --text:    #d8e4f8;
+  --muted:   #7a90b8;
+  --science: #3bdfaa;
+  --hypo:    #ff8844;
+  --font-d:  'Space Grotesk', sans-serif;
+  --font-b:  'Inter', sans-serif;
+  --radius:  10px;
+  --blur:    blur(14px);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+canvas#threeCanvas {
+  position: fixed; inset: 0;
+  display: block;
+  cursor: crosshair;
+}
+
+/* ── UI Layer wrapper (sits above canvas) ── */
+.ui-layer {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10;
+}
+.ui-layer * { pointer-events: auto; }
+
+/* ── Header ── */
+#header {
+  top: 0; left: 0; right: 0;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(6,8,16,0.92) 70%, transparent);
+  gap: 12px;
+  pointer-events: none;
+  z-index: 20;
+}
+#header .site-title {
+  font-family: var(--font-d);
+  font-size: clamp(13px, 2vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(255,160,50,0.55);
+  white-space: nowrap;
+  pointer-events: none;
+}
+#langToggle {
+  pointer-events: auto;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--accent);
+  font-family: var(--font-d);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: var(--blur);
+  transition: border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+#langToggle:hover { border-color: var(--accent); color: #fff; }
+
+/* ── Controls hint ── */
+#hud {
+  bottom: 90px; left: 0; right: 0;
+  display: flex; justify-content: center;
+  pointer-events: none; z-index: 15;
+}
+#controlsHint {
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(0,0,0,0.45);
+  padding: 5px 14px;
+  border-radius: 20px;
+  backdrop-filter: var(--blur);
+  pointer-events: none;
+  text-align: center;
+}
+
+/* ── Timeline Controls ── */
+#timelineControls {
+  bottom: 0; left: 0; right: 0;
+  padding: 10px 18px 12px;
+  background: linear-gradient(0deg, rgba(6,8,16,0.96) 75%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.tl-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(20,32,70,0.75);
+  color: var(--text);
+  font-family: var(--font-d);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: var(--blur);
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.tl-btn:hover { background: rgba(74,158,255,0.2); border-color: var(--accent); }
+
+.tl-speed-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+  white-space: nowrap;
+}
+.tl-speed {
+  background: rgba(15,22,50,0.8);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.tl-progress-wrap { flex: 1; min-width: 80px; }
+.tl-progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.tl-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--antares) 100%);
+  border-radius: 3px;
+  transition: width 0.2s linear;
+  width: 0%;
+}
+
+.tl-stage-badge {
+  font-family: var(--font-d);
+  font-size: 11px;
+  color: var(--gold);
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Stage Event Panel ── */
+#stagePanel {
+  top: 56px; left: 50%; transform: translateX(-50%);
+  max-width: min(480px, calc(100vw - 36px));
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  backdrop-filter: var(--blur);
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#stagePanel.visible { opacity: 1; }
+
+.stage-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-d);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+.tag-science { background: rgba(59,223,170,0.15); color: var(--science); border: 1px solid rgba(59,223,170,0.35); }
+.tag-hypo    { background: rgba(255,136,68,0.15); color: var(--hypo);    border: 1px solid rgba(255,136,68,0.35); }
+
+.stage-title {
+  font-family: var(--font-d);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 5px;
+}
+.stage-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+/* ── Info Panel ── */
+#infoPanel {
+  top: 56px; right: 18px;
+  width: min(300px, calc(100vw - 36px));
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  backdrop-filter: var(--blur);
+  z-index: 30;
+  pointer-events: auto;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#infoPanel.visible { transform: translateX(0); }
+
+.close-btn {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none;
+  color: var(--muted); font-size: 16px;
+  cursor: pointer; line-height: 1;
+  transition: color 0.15s;
+}
+.close-btn:hover { color: #fff; }
+
+.info-name {
+  font-family: var(--font-d);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+  padding-right: 20px;
+}
+.info-type {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.info-table tr { border-bottom: 1px solid rgba(100,140,220,0.1); }
+.info-label {
+  color: var(--muted);
+  padding: 5px 8px 5px 0;
+  white-space: nowrap;
+  vertical-align: top;
+  width: 45%;
+}
+.info-val {
+  color: var(--text);
+  padding: 5px 0;
+}
+
+.info-facts-title {
+  font-family: var(--font-d);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.info-facts {
+  padding-left: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.info-facts li { margin-bottom: 6px; }
+
+.info-hypo-note {
+  display: none;
+  margin-top: 12px;
+  padding: 8px 10px;
+  background: rgba(255,85,51,0.12);
+  border: 1px solid rgba(255,85,51,0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--antares);
+  line-height: 1.5;
+}
+
+/* ── Mobile Joystick ── */
+#joystickZone {
+  position: fixed;
+  bottom: 90px;
+  left: 20px;
+  width: 110px; height: 110px;
+  z-index: 40;
+  pointer-events: auto;
+  touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+}
+#joystickBase {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  background: rgba(74,158,255,0.1);
+  border: 2px solid rgba(74,158,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+#joystickStick {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: rgba(74,158,255,0.55);
+  border: 2px solid rgba(74,158,255,0.8);
+  position: absolute;
+  transition: transform 0.05s;
+  pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  #timelineControls {
+    padding: 8px 10px 10px;
+    gap: 6px;
+  }
+  .tl-btn { padding: 5px 10px; font-size: 11px; }
+  .tl-stage-badge { display: none; }
+  #stagePanel { top: 44px; padding: 10px 12px; }
+  #infoPanel { right: 10px; top: 44px; width: calc(100vw - 20px); }
+  .info-name { font-size: 16px; }
+}
+
+@media (min-width: 601px) {
+  #joystickZone { display: none; }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

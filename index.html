@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Antares Invades the Solar System</title>
+  <link rel="stylesheet" href="css/main.css" />
+
+  <!-- Three.js via importmap so JS modules can import 'three' cleanly -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- THREE.js canvas -->
+<canvas id="threeCanvas"></canvas>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  HEADER                      ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="header" class="ui-layer" style="position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;z-index:20;pointer-events:none;">
+  <div class="site-title" data-i18n="title">Antares Invades the Solar System</div>
+  <button id="langToggle" style="pointer-events:auto;">தமிழ்</button>
+</div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  STAGE EVENT PANEL           ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="stagePanel" class="ui-layer" style="position:fixed;"></div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  INFO PANEL                  ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="infoPanel" class="ui-layer" style="position:fixed;"></div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  HUD (controls hint)         ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="hud" class="ui-layer" style="position:fixed;bottom:90px;left:0;right:0;display:flex;justify-content:center;z-index:15;pointer-events:none;">
+  <div id="controlsHint"></div>
+</div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  TIMELINE CONTROLS           ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="timelineControls" class="ui-layer" style="position:fixed;bottom:0;left:0;right:0;z-index:20;pointer-events:auto;"></div>
+
+<!-- ╔══════════════════════════════╗ -->
+<!-- ║  LOADING SCREEN              ║ -->
+<!-- ╚══════════════════════════════╝ -->
+<div id="loadingScreen" style="
+  position:fixed;inset:0;
+  background:#060810;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9999;
+  font-family:'Space Grotesk',sans-serif;
+  gap:20px;
+  transition:opacity 0.8s ease;
+">
+  <div style="font-size:clamp(18px,3vw,28px);font-weight:700;color:#ffc055;letter-spacing:0.05em;text-align:center;padding:0 20px;">
+    Antares Invades the Solar System
+  </div>
+  <div style="font-size:13px;color:#7a90b8;text-align:center;padding:0 20px;">
+    அந்தாரிஸ் சூரிய குடும்பத்தைத் தாக்குதல்
+  </div>
+  <div id="loadingBar" style="width:220px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
+    <div id="loadingFill" style="height:100%;width:0%;background:linear-gradient(90deg,#4a9eff,#ff5533);border-radius:2px;transition:width 0.3s;"></div>
+  </div>
+  <div style="font-size:12px;color:#4a7090;">Building the cosmos…</div>
+</div>
+
+<!-- App entry -->
+<script type="module">
+  // Animate the loading bar while Three.js loads
+  let lw = 0;
+  const fill = document.getElementById('loadingFill');
+  const lId = setInterval(() => {
+    lw = Math.min(lw + Math.random() * 12, 90);
+    fill.style.width = lw + '%';
+  }, 120);
+
+  // Dynamically import the app after a brief pause so the loading screen renders
+  setTimeout(async () => {
+    try {
+      await import('./js/main.js');
+    } catch(e) {
+      console.error('App load error:', e);
+      document.getElementById('loadingScreen').innerHTML =
+        `<div style="color:#ff5533;font-family:sans-serif;padding:30px;text-align:center;">
+           Failed to load the simulator.<br>
+           <small style="color:#aaa;">${e.message}</small>
+         </div>`;
+      return;
+    }
+    clearInterval(lId);
+    fill.style.width = '100%';
+    setTimeout(() => {
+      const ls = document.getElementById('loadingScreen');
+      ls.style.opacity = '0';
+      setTimeout(() => ls.remove(), 800);
+    }, 300);
+  }, 80);
+</script>
+
+</body>
+</html>
